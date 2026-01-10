@@ -4,25 +4,45 @@ Go语言编写的跨平台网络监控程序：监控实时流量，包括出站
 
 ## 快速入门
 
+下载最新版本的 `GeoLite2-City.mmdb` 文件。
+
+链接：https://github.com/P3TERX/GeoLite.mmdb/releases
+
+在代码中设置: `netguard.SetGeoipDb("GeoLite2-City.mmdb")`
+
+示例代码：
+
 ```go
 package main
 
 import (
 	"fmt"
 	"github.com/iotames/netguard"
+	"github.com/iotames/netguard/log"
 )
 
 func main() {
+	geoipFile := "GeoLite2-City.mmdb"
+	err := netguard.SetGeoipDb(geoipFile)
+	if err != nil {
+		log.Error("set geoip db fail", "error", err.Error(), "geoipFile", geoipFile)
+		panic(err)
+	}
+
+	var ipinfomap = make(map[string]string, 1000)
 	netguard.SetPacketHook(func(info *netguard.TrafficRecord) {
-		fmt.Println("PacketInfo:", info.Msg)
-		// 字节转MB，保留两位小数
-		// currentMB := float64(tr.BytesCurrentLen) / 1024.0 / 1024.0
-		// totalMB := float64(tr.BytesReceived+tr.BytesSent) / 1024.0 / 1024.0
-		// tr.Msg = fmt.Sprintf("%s-%s, Remote(%s:%d), Process(%d-%s), Length(%.2fMB/%.2fMB)", tr.Protocol, direction, remoteIP.String(), remotePort, tr.ProcessPID, tr.ProcessName, currentMB, totalMB)
+		remoteIp := info.RemoteIP.String()
+		remoteInfostr, ok := ipinfomap[remoteIp]
+		if !ok {
+			ipinfo := netguard.GetIpGeo(remoteIp)
+			remoteInfostr = fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
+			ipinfomap[remoteIp] = remoteInfostr
+		}
+		totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+		fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
 	})
 	netguard.Run()
 }
-
 
 ```
 

@@ -172,7 +172,7 @@ func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remot
 			tr.ProcessPID = pid
 		}
 
-		tr.Msg = fmt.Sprintf("%s-%s, Remote(%s:%d), Process(%d-%s), Length(%d/%d)", tr.Protocol, direction, remoteIP.String(), remotePort, tr.ProcessPID, tr.ProcessName, tr.BytesCurrentLen, tr.BytesReceived+tr.BytesSent)
+		tr.Msg = fmt.Sprintf("%s-%s, Remote(%s:%d), Process(%d-%s), Length(%d/%d)", tr.Protocol, direction, tr.RemoteIP.String(), remotePort, tr.ProcessPID, tr.ProcessName, tr.BytesCurrentLen, tr.BytesReceived+tr.BytesSent)
 
 		if hookPacket != nil {
 			hookPacket(tr)
