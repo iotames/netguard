@@ -2,6 +2,29 @@
 
 Go语言编写的跨平台网络监控程序：监控实时流量，包括出站和入站流量，主机地址，端口号，进程名，PID，流量统计等。
 
+## 快速入门
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/iotames/netguard"
+)
+
+func main() {
+	netguard.SetPacketHook(func(info *netguard.TrafficRecord) {
+		fmt.Println("PacketInfo:", info.Msg)
+		// 字节转MB，保留两位小数
+		// currentMB := float64(tr.BytesCurrentLen) / 1024.0 / 1024.0
+		// totalMB := float64(tr.BytesReceived+tr.BytesSent) / 1024.0 / 1024.0
+		// tr.Msg = fmt.Sprintf("%s-%s, Remote(%s:%d), Process(%d-%s), Length(%.2fMB/%.2fMB)", tr.Protocol, direction, remoteIP.String(), remotePort, tr.ProcessPID, tr.ProcessName, currentMB, totalMB)
+	})
+	netguard.Run()
+}
+
+
+```
 
 ## 依赖
 

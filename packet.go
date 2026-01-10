@@ -98,7 +98,7 @@ func processCapturedPacket(packet gopacket.Packet) {
 }
 
 // updatePacketRecord 更新流量统计信息
-func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remotePort uint16, protocol, processName string, pid int32, traffic uint64, isInbound bool) {
+func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remotePort uint16, protocol, processName string, pid int32, packetLength uint64, isInbound bool) {
 	var direction, arrow string
 	if isInbound {
 		direction = "入站"
@@ -107,6 +107,7 @@ func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remot
 		direction = "出站"
 		arrow = "->"
 	}
+	// 使用本地IP和端口作为键，方便匹配本地进程
 	key := fmt.Sprintf("%s:%d", localIP.String(), localPort)
 
 	record, exists := trafficMap.Load(key)
@@ -135,17 +136,22 @@ func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remot
 		}
 		trafficMap.Store(key, record)
 		msg := fmt.Sprintf("新建连接%s：", arrow)
-		log.Info(msg, "方向", direction, "本地IP", localIP, "本地端口", localPort, "远程IP", remoteIP, "远程端口", remotePort, "进程", processName, "PID", pid, "字节大小", traffic)
+		log.Debug(msg, "方向", direction, "本地IP", localIP, "本地端口", localPort, "远程IP", remoteIP, "远程端口", remotePort, "进程", processName, "PID", pid, "字节大小", packetLength)
 	}
 
 	if tr, ok := record.(*TrafficRecord); ok {
 		tr.Lock()
 		defer tr.Unlock()
 
+		// 当前数据包大小（字节数）
+		tr.BytesCurrentLen = packetLength
+		// 是否为入站流量
+		tr.Inbound = isInbound
+
 		if isInbound {
-			tr.BytesReceived += traffic
+			tr.BytesReceived += packetLength
 		} else {
-			tr.BytesSent += traffic
+			tr.BytesSent += packetLength
 		}
 
 		// 基于时间间隔的日志：每10秒记录一次该连接的流量统计
@@ -153,7 +159,7 @@ func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remot
 			// 记录流量统计而非单个包
 			msg := fmt.Sprintf("流量统计%s：", arrow)
 			log.Debug(msg, "方向", direction, "本地端口", localPort, "远程IP", remoteIP, "远程端口", remotePort, "协议", protocol,
-				"进程", processName, "PID", pid, "累计发送字节", tr.BytesSent, "累计接收字节", tr.BytesReceived, "当前包字节", traffic)
+				"进程", processName, "PID", pid, "累计发送字节", tr.BytesSent, "累计接收字节", tr.BytesReceived, "当前包字节", packetLength)
 			tr.LastLogTime = time.Now()
 		}
 
@@ -165,5 +171,17 @@ func updatePacketRecord(localIP net.IP, localPort uint16, remoteIP net.IP, remot
 		if pid > 0 {
 			tr.ProcessPID = pid
 		}
+
+		tr.Msg = fmt.Sprintf("%s-%s, Remote(%s:%d), Process(%d-%s), Length(%d/%d)", tr.Protocol, direction, remoteIP.String(), remotePort, tr.ProcessPID, tr.ProcessName, tr.BytesCurrentLen, tr.BytesReceived+tr.BytesSent)
+
+		if hookPacket != nil {
+			hookPacket(tr)
+		}
 	}
 }
+
+func SetPacketHook(packetHook func(info *TrafficRecord)) {
+	hookPacket = packetHook
+}
+
+var hookPacket func(info *TrafficRecord)

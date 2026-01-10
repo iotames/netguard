@@ -26,3 +26,11 @@ func GetTrafficStats() []*TrafficRecord {
 	})
 	return stats
 }
+
+// type Status struct{}
+// func (s Status) GetProcessMapLen() int {
+// 	return len(connectionMap)
+// }
+// func (s Status) GetIpMapLen() int {
+// 	return len(trafficMap)
+// }

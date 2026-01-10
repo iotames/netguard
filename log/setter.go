@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	lgLevel   *slog.LevelVar
+	lgLevel   *slog.LevelVar = &slog.LevelVar{}
 	logWriter io.Writer
 	opts      *slog.HandlerOptions
 )
@@ -51,7 +51,6 @@ func SetLogWriterByFile(filepath string) (f *os.File, err error) {
 
 func NewOptions() *slog.HandlerOptions {
 	// 设置 HandlerOptions，自定义时间属性
-	lgLevel = &slog.LevelVar{}
 	lgLevel.Set(slog.LevelWarn)
 	return &slog.HandlerOptions{
 		Level: lgLevel,
