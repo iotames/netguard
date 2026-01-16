@@ -1,7 +1,9 @@
 package main
 
 import (
+	// "flag"
 	"fmt"
+	"os"
 
 	// "log/slog"
 	"github.com/iotames/netguard"
@@ -9,6 +11,13 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		if os.Args[1] == "--version" || os.Args[1] == "-v" || os.Args[1] == "-version" {
+			versionInfo()
+			return
+		}
+	}
+
 	// log.SetLevel(slog.LevelInfo)
 	// f, err := log.SetLogWriterByFile("netguard.log")
 	// if err != nil {
@@ -36,3 +45,7 @@ func main() {
 	})
 	netguard.Run()
 }
+
+// func init() {
+// 	flag.Parse()
+// }

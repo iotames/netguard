@@ -20,5 +20,9 @@ resource/
 *.hex
 *.db
 *.zip
+lib/
 venv/
 downloads/
+WpdPack/
+npcap-sdk/
+release/

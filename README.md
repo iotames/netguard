@@ -50,16 +50,22 @@ func main() {
 
 本系统依赖第三方包：`github.com/google/gopacket`，而 `gopacket` 项目依赖底层的 C 库来实现核心的抓包功能。
 
-- Windows依赖：[WinPcap](https://www.winpcap.org/install/) 或 [Npcap](https://nmap.org/npcap/)。
+- Windows依赖：[Npcap](https://npcap.com/) 或 [WinPcap](https://www.winpcap.org/install/) 。只能试用动态链接库。
+
 - Linux依赖：`libpcap`。包管理器可尝试安装 `libpcap-dev`。
 
 ### Windows
 
 Windows缺少依赖库可能报错： `couldn't load wpcap.dll`。
 
-访问 Npcap 官方网站 (https://nmap.org/npcap/) 下载最新的安装包。
+1. 访问 Npcap 官方网站 (https://npcap.com/) 下载最新的安装包。
 
-运行安装程序时，为确保兼容性，建议勾选 `Install Npcap in WinPcap API-compatible Mode` 选项。这能确保系统同时存在 `WinPcap` 和 `Npcap` 所需的接口。
+2. 运行安装程序时，为确保兼容性，建议勾选 `Install Npcap in WinPcap API-compatible Mode` 选项。这能确保系统同时存在 `WinPcap` 和 `Npcap` 所需的接口。
+
+在 Windows 上，使用 `github.com/google/gopacket` 的程序无法完全摆脱动态依赖库。
+
+- [Npcap](https://npcap.com/)：Npcap 是对经典 WinPcap 的激动人心且功能丰富的更新 数据包捕获库。
+- [WinPcap](https://www.winpcap.org/install/)：自 2013 年以来该工具已不再维护，且不再支持 。
 
 ### Linux
 
