@@ -17,6 +17,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"slices"
+	"sync"
+
 	"github.com/iotames/netguard"
 	"github.com/iotames/netguard/log"
 )
@@ -29,17 +33,26 @@ func main() {
 		panic(err)
 	}
 
-	var ipinfomap = make(map[string]string, 1000)
+	var ipinfomap = &sync.Map{}
+
 	netguard.SetPacketHook(func(info *netguard.TrafficRecord) {
 		remoteIp := info.RemoteIP.String()
-		remoteInfostr, ok := ipinfomap[remoteIp]
-		if !ok {
-			ipinfo := netguard.GetIpGeo(remoteIp)
-			remoteInfostr = fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
-			ipinfomap[remoteIp] = remoteInfostr
+		// 跳过本地IP的处理
+		if netguard.IsNativeIP(remoteIp) {
+			return
 		}
-		totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
-		fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+		// 使用sync.Map的方法
+		if remoteInfostr, ok := ipinfomap.Load(remoteIp); ok {
+			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+		} else {
+			ipinfo := netguard.GetIpGeo(remoteIp)
+			remoteInfostr := fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
+			ipinfomap.Store(remoteIp, remoteInfostr)
+
+			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+		}
 	})
 	netguard.Run()
 }
