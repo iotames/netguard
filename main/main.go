@@ -1,16 +1,17 @@
 package main
 
 import (
-	// "flag"
+	"flag"
 	"fmt"
-	"log/slog"
 	"os"
 	"slices"
 	"sync"
 
 	"github.com/iotames/netguard"
-	"github.com/iotames/netguard/log"
 )
+
+var Devname string
+var ListDev bool
 
 func main() {
 	if len(os.Args) > 1 {
@@ -20,17 +21,20 @@ func main() {
 			versionInfo()
 			return
 		}
-		if arg1 == "log" {
-			logstart()
-		}
 	}
 
-	geoipFile := "GeoLite2-City.mmdb"
-	err := netguard.SetGeoipDb(geoipFile)
-	if err != nil {
-		log.Error("set geoip db fail", "error", err.Error(), "geoipFile", geoipFile)
-		panic(err)
+	// 设置程序日志
+	f := setLog()
+	defer f.Close()
+
+	if ListDev {
+		showDevices()
+		return
 	}
+
+	// 设置geoip数据库
+	setGeoipDb()
+
 	// 使用sync.Map替代map，避免出现concurrent map writes错误
 	var ipinfomap = &sync.Map{}
 
@@ -48,23 +52,15 @@ func main() {
 			ipinfo := netguard.GetIpGeo(remoteIp)
 			remoteInfostr := fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
 			ipinfomap.Store(remoteIp, remoteInfostr)
-
 			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
 			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
 		}
 	})
-	netguard.Run()
+	netguard.Run(Devname)
 }
 
-func logstart() {
-	log.SetLevel(slog.LevelInfo)
-	f, err := log.SetLogWriterByFile("netguard.log")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+func init() {
+	flag.StringVar(&Devname, "devname", "", `netguard.exe --devname="\Device\NPF_{3757BF1E-96B9-441B-8D4B-95EAB49ECA36}"`)
+	flag.BoolVar(&ListDev, "listdev", false, "netguard.exe --listdev")
+	flag.Parse()
 }
-
-// func init() {
-// 	flag.Parse()
-// }
