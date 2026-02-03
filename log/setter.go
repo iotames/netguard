@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	lgLevel   *slog.LevelVar = &slog.LevelVar{}
-	logWriter io.Writer
-	opts      *slog.HandlerOptions
+	lgLevel    *slog.LevelVar = &slog.LevelVar{}
+	logWriter  io.Writer
+	opts       *slog.HandlerOptions
+	isSetLevel bool
 )
 
 // SetLevel 设置日志级别
@@ -19,6 +20,7 @@ var (
 //	log.SetLevel(slog.LevelDebug)
 func SetLevel(level slog.Level) {
 	lgLevel.Set(level)
+	isSetLevel = true
 }
 
 // SetLogWriter 设置日志输出
@@ -41,7 +43,7 @@ func SetLogWriter(writer io.Writer) {
 //	}
 //	defer f.Close()
 func SetLogWriterByFile(filepath string) (f *os.File, err error) {
-	f, err = os.OpenFile(filepath, os.O_CREATE|os.O_APPEND, 0644)
+	f, err = os.OpenFile(filepath, os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		return
 	}
@@ -49,9 +51,35 @@ func SetLogWriterByFile(filepath string) (f *os.File, err error) {
 	return f, err
 }
 
+// SetOptions 设置日志选项
+//
+//	import "log/slog"
+//	lgLevel = &slog.LevelVar{}
+//	sopts := &slog.HandlerOptions{
+//		Level: lgLevel,
+//		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+//			// 如果当前属性是时间戳
+//			if a.Key == slog.TimeKey && len(groups) == 0 {
+//				a.Key = "time" // 键名可以保持不变或修改
+//				// 将时间值转换为自定义格式
+//				if t, ok := a.Value.Any().(time.Time); ok {
+//					a.Value = slog.StringValue(t.Format(time.DateTime))
+//				}
+//			}
+//			return a
+//		},
+//	}
+//	SetOptions(sopts)
+func SetOptions(sopts *slog.HandlerOptions) {
+	opts = sopts
+}
+
 func NewOptions() *slog.HandlerOptions {
 	// 设置 HandlerOptions，自定义时间属性
-	lgLevel.Set(slog.LevelWarn)
+	if !isSetLevel {
+		// 设置默认日志级别为 Info
+		lgLevel.Set(slog.LevelInfo)
+	}
 	return &slog.HandlerOptions{
 		Level: lgLevel,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {

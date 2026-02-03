@@ -1,6 +1,7 @@
 package netguard
 
 import (
+	"fmt"
 	"net"
 	"runtime"
 	"sync"
@@ -48,7 +49,14 @@ func init() {
 	go cleanupProcessCache()
 }
 
-func Run() {
+func Run(devName string) {
+	fmt.Println("Run Start. devName=", devName)
+	log.Info("Run Start", "devName", devName)
+	if devName != "" {
+		RunWithDevice(devName)
+		return
+	}
+	fmt.Println("devname未定义。开始获取默认的devname。可使用 --devlist 查看所有可用设备。使用 --devname 指定设备")
 	// 获取网络接口列表并选择（这里选择第一个非环回接口为例）
 	dev := GetDefaultDevice()
 	if dev.Name == "" {
