@@ -1,7 +1,11 @@
-APP_VERSION=v1.0.0
+APP_VERSION=v1.0.1
 ZIP_NAME = NetGuard_$(APP_VERSION).zip
 GEO_DB_FILE = GeoLite2-City.mmdb
 GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.01.16/GeoLite2-City.mmdb
+
+# AMIS jssdk
+JSSDK_TAR = jssdk.tar.gz
+JSSDK_URL = https://github.com/baidu/amis/releases/download/6.13.0/jssdk.tar.gz
 
 # 根据操作系统设置目标文件名和链接库
 ifeq ($(OS),Windows_NT)
@@ -28,7 +32,7 @@ RELEASE_AMIS_DIR=release$(DIRSEP)static$(DIRSEP)amis
 
 # 编译文件
 # apt install libpcap-dev
-build: $(BUILD_FILE_NAME)
+build: $(BUILD_FILE_NAME) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
 
 # 清理编译文件
 clean:
@@ -52,6 +56,17 @@ else
 endif
 	@echo "GEO_DB_FILE Download: $(GEO_DB_FILE)"
 
+# 下载并解压AMIS jssdk
+$(SRC_AMIS_DIR)$(DIRSEP)sdk.js: 
+	-$(MKDIR) $(SRC_AMIS_DIR)
+ifeq ($(OS),Windows_NT)
+	if not exist $(JSSDK_TAR) powershell -Command "Invoke-WebRequest -Uri $(JSSDK_URL) -OutFile $(JSSDK_TAR)"
+	powershell -Command "tar -xzf '$(JSSDK_TAR)' -C '$(SRC_AMIS_DIR)'"
+else
+	if [ ! -f $(JSSDK_TAR) ]; then wget -c $(JSSDK_URL) -O $(JSSDK_TAR); fi
+	tar -xzf $(JSSDK_TAR) -C $(SRC_AMIS_DIR)
+endif
+
 run:
 ifeq ($(OS),Windows_NT)
 	$(RUN_FILE)
@@ -60,7 +75,7 @@ else
 endif
 
 # 整理发布包文件
-release: $(BUILD_FILE_NAME) $(GEO_DB_FILE)
+release: $(BUILD_FILE_NAME) $(GEO_DB_FILE) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
 	-$(MKDIR) release
 	-$(MKDIR) release$(DIRSEP)static$(DIRSEP)amis
 	$(COPY) $(BUILD_FILE_NAME) release$(DIRSEP)$(BUILD_FILE_NAME)

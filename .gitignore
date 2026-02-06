@@ -18,6 +18,7 @@ go.sum
 *.hex
 *.db
 *.zip
+*.tar.gz
 lib/
 venv/
 build/
