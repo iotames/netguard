@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
+	"github.com/iotames/netguard/device"
 	"github.com/iotames/netguard/log"
 )
 
@@ -58,7 +59,7 @@ func Run(devName string) {
 	}
 	fmt.Println("devname未定义。开始获取默认的devname。可使用 --devlist 查看所有可用设备。使用 --devname 指定设备")
 	// 获取网络接口列表并选择（这里选择第一个非环回接口为例）
-	dev := GetDefaultDevice()
+	dev := device.GetDefaultDevice()
 	if dev.Name == "" {
 		log.Error("未找到可用网络设备，退出监控")
 		return
@@ -123,4 +124,29 @@ func RunWithDevice(devName string) {
 
 	// 抓包结束后关闭 channel，让 worker 退出
 	close(packetChan)
+}
+
+func DebugRun(devName string) {
+	// 使用sync.Map替代map，避免出现concurrent map writes错误
+	var ipinfomap = &sync.Map{}
+
+	SetPacketHook(func(info *TrafficRecord) {
+		remoteIp := info.RemoteIP.String()
+		// 跳过本地IP的处理
+		if IsNativeIP(remoteIp) {
+			return
+		}
+		// 使用sync.Map的方法
+		if remoteInfostr, ok := ipinfomap.Load(remoteIp); ok {
+			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+		} else {
+			ipinfo := GetIpGeo(remoteIp)
+			remoteInfostr := fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
+			ipinfomap.Store(remoteIp, remoteInfostr)
+			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+		}
+	})
+	Run(devName)
 }

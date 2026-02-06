@@ -1,4 +1,4 @@
-APP_VERSION=v0.0.2
+APP_VERSION=v1.0.0
 ZIP_NAME = NetGuard_$(APP_VERSION).zip
 GEO_DB_FILE = GeoLite2-City.mmdb
 GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.01.16/GeoLite2-City.mmdb
@@ -23,6 +23,9 @@ else
 	RUN_FILE="Run.sh"
 endif
 
+SRC_AMIS_DIR=static$(DIRSEP)amis
+RELEASE_AMIS_DIR=release$(DIRSEP)static$(DIRSEP)amis
+
 # 编译文件
 # apt install libpcap-dev
 build: $(BUILD_FILE_NAME)
@@ -32,6 +35,7 @@ clean:
 	-$(RM) $(BUILD_FILE_NAME)
 	-$(RM) release$(DIRSEP)$(BUILD_FILE_NAME)
 	-$(RM) release$(DIRSEP)$(RUN_FILE)
+	-$(RM) release$(DIRSEP)*.log
 	-$(RM) $(ZIP_NAME)
 
 # 执行编译程序
@@ -58,9 +62,16 @@ endif
 # 整理发布包文件
 release: $(BUILD_FILE_NAME) $(GEO_DB_FILE)
 	-$(MKDIR) release
+	-$(MKDIR) release$(DIRSEP)static$(DIRSEP)amis
 	$(COPY) $(BUILD_FILE_NAME) release$(DIRSEP)$(BUILD_FILE_NAME)
 	-$(COPY) $(GEO_DB_FILE) release$(DIRSEP)$(GEO_DB_FILE)
 	$(COPY) $(RUN_FILE) release$(DIRSEP)$(RUN_FILE)
+	$(COPY) amis.html release$(DIRSEP)amis.html
+	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)helper.css $(RELEASE_AMIS_DIR)$(DIRSEP)helper.css
+	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)iconfont.css $(RELEASE_AMIS_DIR)$(DIRSEP)iconfont.css
+	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)rest.js $(RELEASE_AMIS_DIR)$(DIRSEP)rest.js
+	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)sdk.css $(RELEASE_AMIS_DIR)$(DIRSEP)sdk.css
+	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js $(RELEASE_AMIS_DIR)$(DIRSEP)sdk.js
 
 # 生成ZIP包
 zip: release

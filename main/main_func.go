@@ -6,7 +6,11 @@ import (
 	"os"
 
 	"github.com/iotames/netguard"
+	"github.com/iotames/netguard/conf"
+	"github.com/iotames/netguard/device"
+	"github.com/iotames/netguard/hotswap"
 	"github.com/iotames/netguard/log"
+	"github.com/iotames/netguard/sql"
 )
 
 func setLog() *os.File {
@@ -32,8 +36,13 @@ func setGeoipDb() {
 }
 
 func showDevices() {
-	devs := netguard.GetDeviceList()
+	devs := device.GetDeviceList()
 	for i, dev := range devs {
 		fmt.Printf("---[%d]--Name(%s)--Description(%s)--------\n", i, dev.Name, dev.Description)
 	}
+}
+
+func initScript() {
+	sqldir := hotswap.NewScriptDir(sql.GetSqlFs(), conf.ScriptsDir)
+	hotswap.GetScriptDir(sqldir)
 }

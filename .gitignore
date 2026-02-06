@@ -4,13 +4,11 @@
 *.exe~
 *.log
 *.mmdb
+*.zip
 .env
 default.env
 go.sum
-build/
-resource/
 *.syso
-
 *.i
 *.s
 *.asm
@@ -22,6 +20,9 @@ resource/
 *.zip
 lib/
 venv/
+build/
+resource/
+runtime/
 downloads/
 WpdPack/
 npcap-sdk/

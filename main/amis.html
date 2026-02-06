@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <!-- https://github.com/baidu/amis/releases -->
+    <meta charset="UTF-8" />
+    <title><%{ .title }%></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="stylesheet" href="/static/amis/sdk.css" />
+    <link rel="stylesheet" href="/static/amis/helper.css" />
+    <link rel="stylesheet" href="/static/amis/iconfont.css" />
+    <!-- 这是默认主题所需的，如果是其他主题则不需要 -->
+    <!-- 从 1.1.0 开始 sdk.css 将不支持 IE 11，如果要支持 IE11 请引用这个 css，并把前面那个删了 -->
+    <!-- <link rel="stylesheet" href="sdk-ie11.css" /> -->
+    <!-- 不过 amis 开发团队几乎没测试过 IE 11 下的效果，所以可能有细节功能用不了，如果发现请报 issue -->
+    <style>
+      html,
+      body,
+      .app-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" class="app-wrapper"></div>
+    <script src="/static/amis/sdk.js"></script>
+    <script type="text/javascript">
+      (function () {
+        let amis = amisRequire('amis/embed');
+        // 通过替换下面这个配置来生成不同页面
+        // let amisJSON = {};
+        // let amisScoped = amis.embed('#root', amisJSON);
+
+        // 从API获取amis配置
+        async function loadAmisConfig() {
+          try {
+            const response = await fetch('/api/amis-page-config');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json(); // 先获取完整的响应
+            const amisJSON = result.data; // 然后从result中获取data字段
+            return amisJSON;
+          } catch (error) {
+            console.error('Failed to load amis config:', error);
+            // 返回一个错误页面配置
+            return {
+              type: 'page',
+              title: '配置加载失败',
+              body: {
+                type: 'tpl',
+                tpl: '页面配置加载失败，请刷新页面重试。错误信息：' + error.message
+              }
+            };
+          }
+        }
+        
+        // 初始化页面
+        async function initAmis() {
+          const amisJSON = await loadAmisConfig();
+          // 移除加载提示
+          const root = document.getElementById('root');
+          root.innerHTML = '';
+          // 渲染amis页面
+          amis.embed('#root', amisJSON);
+        }
+        
+        // 启动应用
+        initAmis();
+
+      })();
+    </script>
+  </body>
+</html>
