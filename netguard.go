@@ -139,13 +139,17 @@ func DebugRun(devName string) {
 		// 使用sync.Map的方法
 		if remoteInfostr, ok := ipinfomap.Load(remoteIp); ok {
 			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
-			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+			logmsg := fmt.Sprintf("流量概要:%s, 流量:%.2fMB, IP解析:%s", info.Msg, totalMB, remoteInfostr)
+			fmt.Printf("%s\n", logmsg)
+			log.Info("PacketHook", "logmsg", logmsg)
 		} else {
 			ipinfo := GetIpGeo(remoteIp)
 			remoteInfostr := fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
 			ipinfomap.Store(remoteIp, remoteInfostr)
 			totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
-			fmt.Printf("流量概要:%s, 流量:%.2fMB, IP解析:%s\n", info.Msg, totalMB, remoteInfostr)
+			logmsg := fmt.Sprintf("流量概要:%s, 流量:%.2fMB, IP解析:%s", info.Msg, totalMB, remoteInfostr)
+			fmt.Printf("%s\n", logmsg)
+			log.Info("PacketHook", "logmsg", logmsg)
 		}
 	})
 	Run(devName)

@@ -1,0 +1,20 @@
+{
+    "body": {
+        "type": "form",
+        "title": "",
+        "submitText": "启动",
+        "mode": "horizontal",
+        "api": "/api/netguard/start",
+        "body": [
+            {
+                "label": "监控网卡",
+                "name": "devname",
+                "source": "/api/device/list",
+                "type": "select",
+                "value": "\\Device\\NPF_{3757BF1E-96B9-441B-8D4B-95EAB49ECA36}"
+            }
+        ]
+    },
+    "title": "NetGuard网络流量监控",
+    "type": "page"
+}

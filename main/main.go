@@ -8,10 +8,10 @@ import (
 	"github.com/iotames/netguard"
 	"github.com/iotames/netguard/conf"
 	"github.com/iotames/netguard/webserver"
-	sqdialog "github.com/sqweek/dialog"
 )
 
 func main() {
+	var err error
 	if V || VersionV {
 		versionInfo()
 		return
@@ -31,7 +31,12 @@ func main() {
 		}()
 	}
 	if Port > 0 {
-		webserver.Run(Port)
+		// f := setLog()
+		// defer f.Close()
+		err = webserver.Run(Port)
+		if err != nil {
+			panic(fmt.Errorf("webserver.Run err(%v)", err))
+		}
 	} else {
 		runNetguard()
 	}
@@ -51,8 +56,7 @@ func init() {
 	err := conf.LoadEnv()
 	if err != nil {
 		if runtime.GOOS == "windows" {
-			// sqdialog.Message("%s", "Do you want to continue?").Title("Are you sure?").YesNo()
-			sqdialog.Message("环境变量初始化错误（conf.LoadEnv err）:%s", err.Error()).Title("初始化错误").Error()
+			errorMsg("初始化错误", "配置初始化错误。请检查目录权限，或尝试以管理员身份运行程序。conf.LoadEnv err:%s", err.Error())
 		}
 		panic(fmt.Errorf("init err(%v)", err))
 	}

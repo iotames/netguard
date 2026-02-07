@@ -3,10 +3,13 @@ package webserver
 import (
 	"fmt"
 	"io"
-	"os"
 
+	"log/slog"
+	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/iotames/netguard/log"
 
 	"github.com/iotames/easyserver/httpsvr"
 	"github.com/iotames/easyserver/response"
@@ -63,4 +66,19 @@ func IsPathExists(path string) bool {
 		return false
 	}
 	return false
+}
+
+func setLogFile() error {
+	// 设置日志文件
+	log.SetLevel(slog.LevelInfo)
+	logFile := "netguard.log"
+	_, err := log.SetLogWriterByFile(logFile)
+	if err != nil {
+		log.Error("set log file fail", "error", err.Error(), "logFile", logFile)
+		// panic(err)
+	}
+	log.ResetLogger()
+	// return f
+	// defer f.Close()
+	return err
 }

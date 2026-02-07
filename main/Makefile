@@ -1,4 +1,4 @@
-APP_VERSION=v1.0.1
+APP_VERSION=v1.0.2
 ZIP_NAME = NetGuard_$(APP_VERSION).zip
 GEO_DB_FILE = GeoLite2-City.mmdb
 GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.01.16/GeoLite2-City.mmdb
@@ -17,6 +17,7 @@ ifeq ($(OS),Windows_NT)
 	RM=del /Q
 	MKDIR=mkdir
 	RUN_FILE="Run.bat"
+#	set CGO_ENABLED=1
 else
 	BUILD_FILE_NAME=netguard
 	BUILD_TIME:=$(shell date +%Y-%m-%d_%H_%M)
@@ -25,14 +26,19 @@ else
 	RM=rm -rf
 	MKDIR=mkdir -p
 	RUN_FILE="Run.sh"
+	export CGO_ENABLED=1
+# apt install libpcap-dev	
 endif
 
 SRC_AMIS_DIR=static$(DIRSEP)amis
 RELEASE_AMIS_DIR=release$(DIRSEP)static$(DIRSEP)amis
+SRC_PAGES_DIR=static$(DIRSEP)pages
+RELEASE_PAGES_DIR=release$(DIRSEP)static$(DIRSEP)pages
+
 
 # 编译文件
 # apt install libpcap-dev
-build: $(BUILD_FILE_NAME) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
+build: $(BUILD_FILE_NAME) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js $(SRC_PAGES_DIR)$(DIRSEP)index.json
 
 # 清理编译文件
 clean:
@@ -40,6 +46,7 @@ clean:
 	-$(RM) release$(DIRSEP)$(BUILD_FILE_NAME)
 	-$(RM) release$(DIRSEP)$(RUN_FILE)
 	-$(RM) release$(DIRSEP)*.log
+	-$(RM) *.log
 	-$(RM) $(ZIP_NAME)
 
 # 执行编译程序
@@ -67,7 +74,7 @@ else
 	tar -xzf $(JSSDK_TAR) -C $(SRC_AMIS_DIR)
 endif
 
-run:
+run: $(BUILD_FILE_NAME)
 ifeq ($(OS),Windows_NT)
 	$(RUN_FILE)
 else
@@ -77,11 +84,13 @@ endif
 # 整理发布包文件
 release: $(BUILD_FILE_NAME) $(GEO_DB_FILE) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
 	-$(MKDIR) release
-	-$(MKDIR) release$(DIRSEP)static$(DIRSEP)amis
+	-$(MKDIR) $(RELEASE_PAGES_DIR)
+	-$(MKDIR) $(RELEASE_AMIS_DIR)
 	$(COPY) $(BUILD_FILE_NAME) release$(DIRSEP)$(BUILD_FILE_NAME)
 	-$(COPY) $(GEO_DB_FILE) release$(DIRSEP)$(GEO_DB_FILE)
 	$(COPY) $(RUN_FILE) release$(DIRSEP)$(RUN_FILE)
 	$(COPY) amis.html release$(DIRSEP)amis.html
+	$(COPY) $(SRC_PAGES_DIR)$(DIRSEP)* $(RELEASE_PAGES_DIR)$(DIRSEP)
 	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)helper.css $(RELEASE_AMIS_DIR)$(DIRSEP)helper.css
 	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)iconfont.css $(RELEASE_AMIS_DIR)$(DIRSEP)iconfont.css
 	$(COPY) $(SRC_AMIS_DIR)$(DIRSEP)rest.js $(RELEASE_AMIS_DIR)$(DIRSEP)rest.js

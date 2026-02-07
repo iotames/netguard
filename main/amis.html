@@ -44,12 +44,14 @@
         async function loadAmisConfig() {
           try {
             const response = await fetch('/api/amis-page-config');
+            // const response = await fetch('/static/pages/sample.json');
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
             const result = await response.json(); // 先获取完整的响应
             const amisJSON = result.data; // 然后从result中获取data字段
             return amisJSON;
+            // return result;
           } catch (error) {
             console.error('Failed to load amis config:', error);
             // 返回一个错误页面配置

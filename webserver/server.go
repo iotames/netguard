@@ -13,22 +13,23 @@ import (
 
 var AppTitle = "NetGuard网络流量监控"
 
-func Run(port int) {
+func Run(port int) error {
 	addr := fmt.Sprintf(":%d", port)
 	svr := e.NewServer(addr)
 	setMiddlewares(svr)
 	setHandler(svr)
-	svr.ListenAndServe()
+	return svr.ListenAndServe()
 }
 
 func setMiddlewares(svr *httpsvr.EasyServer) {
 	svr.AddMiddleHead(httpsvr.NewMiddleCORS("*"))
-	svr.AddMiddleHead(httpsvr.NewMiddleStatic("/static/amis", "./static/amis"))
+	svr.AddMiddleHead(httpsvr.NewMiddleStatic("/static", "./static"))
 }
 
 func setHandler(svr *httpsvr.EasyServer) {
 	svr.AddHandler("GET", "/", home)
 	svr.AddHandler("GET", "/debug", debug)
+	svr.AddHandler("GET", "/api/log/setfile", setlogfile)
 	svr.AddHandler("POST", "/api/uploadfile", uploadfile)
 	svr.AddHandler("GET", "/api/device/list", deviceList)
 	svr.AddHandler("GET", "/api/amis-page-config", getAmisPageConfig)
@@ -60,7 +61,15 @@ func netguardStart(ctx httpsvr.Context) {
 		netguard.DebugRun(startConf.DevName)
 	}()
 	e.ResponseJsonOk(ctx, "启动成功")
+}
 
+func setlogfile(ctx httpsvr.Context) {
+	err := setLogFile()
+	if err != nil {
+		e.ResponseJsonFail(ctx, err.Error(), 500)
+		return
+	}
+	e.ResponseJsonOk(ctx, "设置成功")
 }
 
 func deviceList(ctx httpsvr.Context) {

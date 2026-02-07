@@ -44,3 +44,8 @@ func getLogger() *slog.Logger {
 	})
 	return lg
 }
+
+// ResetLogger 重置日志 似乎无法即刻生效。
+func ResetLogger() {
+	lg = slog.New(slog.NewTextHandler(logWriter, opts))
+}
