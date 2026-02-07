@@ -4,13 +4,15 @@ go 1.24.1
 
 require (
 	github.com/google/gopacket v1.1.19
-	github.com/iotames/easyconf v1.2.1
+	github.com/iotames/easyconf v1.2.2
 	github.com/iotames/easyserver v1.3.0
 	github.com/oschwald/maxminddb-golang/v2 v2.1.1
 	github.com/shirou/gopsutil/v3 v3.24.5
+	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
 )
 
 require (
+	github.com/TheTitanrain/w32 v0.0.0-20180517000239-4f5cfb03fabf // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/iotames/miniutils v1.0.11 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

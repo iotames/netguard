@@ -43,7 +43,7 @@ func getEnvFile() string {
 	return efile
 }
 
-func setConfByEnv() {
+func setConfByEnv() error {
 	// # 设置 NGD_ENV_FILE 环境变量，可更改配置文件路径。
 	cf = easyconf.NewConf(getEnvFile())
 
@@ -61,7 +61,7 @@ func setConfByEnv() {
 	cf.StringVar(&DbUsername, "DB_USERNAME", DEFAULT_DB_USERNAME, "数据库用户名")
 	cf.StringVar(&DbPassword, "DB_PASSWORD", DEFAULT_DB_PASSWORD, "数据库密码")
 
-	cf.Parse(false)
+	return cf.Parse(false)
 }
 
 func ShowConf() {
@@ -70,7 +70,10 @@ func ShowConf() {
 
 func LoadEnv() error {
 	var err error
-	setConfByEnv()
+	err = setConfByEnv()
+	if err != nil {
+		return err
+	}
 	// if !IsPathExists(ResourceDir) {
 	// 	err = Mkdir(ResourceDir)
 	// 	if err != nil {

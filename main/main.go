@@ -8,6 +8,7 @@ import (
 	"github.com/iotames/netguard"
 	"github.com/iotames/netguard/conf"
 	"github.com/iotames/netguard/webserver"
+	sqdialog "github.com/sqweek/dialog"
 )
 
 func main() {
@@ -49,6 +50,10 @@ func runNetguard() {
 func init() {
 	err := conf.LoadEnv()
 	if err != nil {
+		if runtime.GOOS == "windows" {
+			// sqdialog.Message("%s", "Do you want to continue?").Title("Are you sure?").YesNo()
+			sqdialog.Message("环境变量初始化错误（conf.LoadEnv err）:%s", err.Error()).Title("初始化错误").Error()
+		}
 		panic(fmt.Errorf("init err(%v)", err))
 	}
 	parseArgs()
