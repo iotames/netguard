@@ -1,4 +1,4 @@
-APP_VERSION=v1.0.2
+APP_VERSION=v1.1.0
 ZIP_NAME = NetGuard_$(APP_VERSION).zip
 GEO_DB_FILE = GeoLite2-City.mmdb
 GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.01.16/GeoLite2-City.mmdb

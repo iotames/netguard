@@ -2,11 +2,13 @@ package webserver
 
 import (
 	"fmt"
+	"sync"
 
 	e "github.com/iotames/easyserver"
 	"github.com/iotames/easyserver/httpsvr"
 	"github.com/iotames/easyserver/response"
 	"github.com/iotames/netguard"
+	"github.com/iotames/netguard/db"
 	"github.com/iotames/netguard/device"
 	"github.com/iotames/netguard/hotswap"
 )
@@ -58,7 +60,57 @@ func netguardStart(ctx httpsvr.Context) {
 	fmt.Printf("---startConf22(%+v)-----\n", startConf)
 	go func() {
 		netguardStarted = true
-		netguard.DebugRun(startConf.DevName)
+
+		d := db.GetDb()
+
+		// 使用sync.Map替代map，避免出现concurrent map writes错误
+		var ipinfomap = &sync.Map{}
+
+		netguard.SetPacketHook(func(info *netguard.TrafficRecord) {
+			remoteIp := info.RemoteIP.String()
+			// 跳过本地IP的处理
+			if netguard.IsNativeIP(remoteIp) {
+				return
+			}
+			var ipinfo netguard.GeoIpInfo
+			// 使用sync.Map的方法
+			if remoteInfo, ok := ipinfomap.Load(remoteIp); ok {
+				ipinfo = remoteInfo.(netguard.GeoIpInfo)
+				// totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+				// logmsg := fmt.Sprintf("流量概要:%s, 流量:%.2fMB, IP解析:%s", info.Msg, totalMB, remoteInfostr)
+				// fmt.Printf("%s\n", logmsg)
+				// log.Info("PacketHook", "logmsg", logmsg)
+
+			} else {
+				ipinfo = netguard.GetIpGeo(remoteIp)
+				// remoteInfostr := fmt.Sprintf("%s %s", ipinfo.Country, ipinfo.City)
+				ipinfomap.Store(remoteIp, ipinfo)
+				// totalMB := float64(info.BytesReceived+info.BytesSent) / 1024.0 / 1024.0
+				// logmsg := fmt.Sprintf("流量概要:%s, 流量:%.2fMB, IP解析:%s", info.Msg, totalMB, remoteInfostr)
+				// fmt.Printf("%s\n", logmsg)
+				// log.Info("PacketHook", "logmsg", logmsg)
+
+			}
+			_, err = d.Exec(`INSERT INTO ng_hook_logs (
+            remote_ip, remote_port, protocol,
+			process_name, process_pid,
+            bytes_current_len, inbound,
+            ip_country, ip_city
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				remoteIp, info.RemotePort, info.Protocol,
+				info.ProcessName, info.ProcessPID,
+				info.BytesCurrentLen, info.Inbound,
+				ipinfo.Country, ipinfo.City,
+			)
+
+			if err != nil {
+				fmt.Println("sql error:", err.Error())
+			}
+
+		})
+
+		netguard.Run(startConf.DevName)
+
 	}()
 	e.ResponseJsonOk(ctx, "启动成功")
 }

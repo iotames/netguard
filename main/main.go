@@ -62,4 +62,5 @@ func init() {
 	}
 	parseArgs()
 	initScript()
+	dbinit()
 }

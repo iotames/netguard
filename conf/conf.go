@@ -11,16 +11,17 @@ var cf *easyconf.Conf
 
 const DRIVER_MYSQL = "mysql"
 const DRIVER_POSTGRES = "postgres"
+const DRIVER_SQLITE = "sqlite3"
 
 const DEFAULT_ENV_FILE = ".env"
 const DEFAULT_RUNTIME_DIR = "runtime"
 const DEFAULT_RESOURCE_DIR = "resource"
 const DEFAULT_SCRIPTS_DIR = "scripts"
 const DEFAULT_WEB_SERVER_PORT = 8080
-const DEFAULT_DB_DRIVER = DRIVER_POSTGRES
+const DEFAULT_DB_DRIVER = DRIVER_SQLITE
 const DEFAULT_DB_HOST = "127.0.0.1"
 const DEFAULT_DB_PORT = 5432
-const DEFAULT_DB_NAME = "postgres"
+const DEFAULT_DB_NAME = "netguard"
 const DEFAULT_DB_SCHEMA = "public"
 const DEFAULT_DB_USERNAME = "postgres"
 const DEFAULT_DB_PASSWORD = "postgres"

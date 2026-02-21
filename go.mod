@@ -5,7 +5,9 @@ go 1.24.1
 require (
 	github.com/google/gopacket v1.1.19
 	github.com/iotames/easyconf v1.2.2
+	github.com/iotames/easydb v0.5.0
 	github.com/iotames/easyserver v1.3.0
+	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/oschwald/maxminddb-golang/v2 v2.1.1
 	github.com/shirou/gopsutil/v3 v3.24.5
 	github.com/sqweek/dialog v0.0.0-20260123140253-64c163d53aac
