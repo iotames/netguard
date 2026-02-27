@@ -1,6 +1,6 @@
 APP_VERSION=v1.1.1
 
-GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.01.16/GeoLite2-City.mmdb
+GEO_DB_URL = https://github.com/P3TERX/GeoLite.mmdb/releases/download/2026.02.25/GeoLite2-City.mmdb
 
 # AMIS jssdk
 
@@ -31,7 +31,8 @@ endif
 
 # Recipe（配方） 是 Makefile 中在 target（目标）下执行的命令
 # Makefile 以 Tab 开头的命令，在它之前必须定义 target
-GEO_DB_FILE = main$(DIRSEP)GeoLite2-City.mmdb
+GEO_DB_FILE_NAME = GeoLite2-City.mmdb
+GEO_DB_FILE_PATH = main$(DIRSEP)$(GEO_DB_FILE_NAME)
 JSSDK_TAR = main$(DIRSEP)jssdk.tar.gz
 ZIP_FILE = main$(DIRSEP)NetGuard_$(APP_VERSION).zip
 MAIN_HTML=main$(DIRSEP)amis.html
@@ -58,20 +59,20 @@ clean:
 	-$(RM) $(ZIP_FILE)
 
 # 执行编译程序
-# CGO_ENABLED=1
+# 环境变量作用域问题：在 Makefile 中，每行命令都在独立子进程中执行，set CGO_ENABLED=1只影响当前行
 $(BUILD_FILE_PATH):
 	go mod tidy
-	$(CMD_PRE)
-	go build -v -o $(BUILD_FILE_PATH) -trimpath -ldflags "-X 'main.BuildTime=$(BUILD_TIME)' -X 'main.Version=$(APP_VERSION)' " ./main
+	$(CMD_PRE) && go build -v -o $(BUILD_FILE_PATH) -trimpath -ldflags "-X 'main.BuildTime=$(BUILD_TIME)' -X 'main.Version=$(APP_VERSION)' " ./main
 
 # 下载GEO数据库以解析IP地址
-$(GEO_DB_FILE): 
+$(GEO_DB_FILE_PATH): 
 ifeq ($(OS),Windows_NT)
-	powershell -Command "Invoke-WebRequest -Uri $(GEO_DB_URL) -OutFile $(GEO_DB_FILE)"
+# 	powershell -Command "Invoke-WebRequest -Uri $(GEO_DB_URL) -OutFile $(GEO_DB_FILE_PATH) -Verbose"
+	powershell -Command "Start-BitsTransfer -Source $(GEO_DB_URL) -Destination $(GEO_DB_FILE_PATH) -DisplayName 'GEO DB download'"
 else
-	wget -c $(GEO_DB_URL) -O $(GEO_DB_FILE)
+	wget -c $(GEO_DB_URL) -O $(GEO_DB_FILE_PATH)
 endif
-	@echo "GEO_DB_FILE Download: $(GEO_DB_FILE)"
+	@echo "GEO_DB_FILE_PATH Download: $(GEO_DB_FILE_PATH)"
 
 # 下载并解压AMIS jssdk
 $(SRC_AMIS_DIR)$(DIRSEP)sdk.js: 
@@ -92,12 +93,12 @@ else
 endif
 
 # 整理发布包文件
-release: $(BUILD_FILE_PATH) $(GEO_DB_FILE) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
+release: $(BUILD_FILE_PATH) $(GEO_DB_FILE_PATH) $(SRC_AMIS_DIR)$(DIRSEP)sdk.js
 	-$(MKDIR) $(RELEASE_DIR)
 	-$(MKDIR) $(RELEASE_PAGES_DIR)
 	-$(MKDIR) $(RELEASE_AMIS_DIR)
 	$(COPY) $(BUILD_FILE_PATH) $(RELEASE_DIR)$(DIRSEP)$(BUILD_FILE_NAME)
-	-$(COPY) $(GEO_DB_FILE) $(RELEASE_DIR)$(DIRSEP)$(GEO_DB_FILE)
+	-$(COPY) $(GEO_DB_FILE_PATH) $(RELEASE_DIR)$(DIRSEP)$(GEO_DB_FILE_NAME)
 	$(COPY) main$(DIRSEP)$(RUN_FILE_NAME) $(RELEASE_DIR)$(DIRSEP)$(RUN_FILE_NAME)
 	$(COPY) $(MAIN_HTML) $(RELEASE_DIR)$(DIRSEP)amis.html
 	$(COPY) $(SRC_PAGES_DIR)$(DIRSEP)* $(RELEASE_PAGES_DIR)$(DIRSEP)
