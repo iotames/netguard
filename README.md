@@ -2,6 +2,16 @@
 
 Go语言编写的跨平台网络监控程序：监控实时流量，包括出站和入站流量，主机地址，端口号，进程名，PID，流量统计等。
 
+
+## 依赖
+
+### Pcap依赖
+
+- Windows依赖：下载 [Npcap](https://npcap.com/)。安装时，勾选 `Install Npcap in WinPcap API-compatible Mode` 选项。
+
+- Linux依赖：使用包管理器安装 `libpcap`。如 `apt install libpcap-dev` 或 `yum install libpcap-devel`。
+
+
 ## 快速入门
 
 下载最新版本的 `GeoLite2-City.mmdb` 文件。
@@ -59,13 +69,34 @@ func main() {
 
 ```
 
-## 依赖
+
+## 编译构建
+
+1. 安装 `Pcap依赖`：Windows安装[Npcap](https://npcap.com/), Linux执行命令 `apt install libpcap-dev` 或 `yum install libpcap-devel`
+
+2. 下载 [GeoLite2-City.mmdb](https://github.com/P3TERX/GeoLite.mmdb/releases) 和 [jssdk.tar.gz](https://github.com/baidu/amis/releases/download/6.13.0/jssdk.tar.gz) 文件，放在main目录下。
+
+3. 编译：在项目根目录执行构建命令 `make build`
+
+4. make命令：如提示make命令不存在，请安装gcc工具。
+
+
+## 编译构建工具
+
+### 安装gcc工具
+
+1. Linux: 执行命令 `apt update && apt install -y gcc`
+
+2. Windows: 下载 [WinLibs](https://winlibs.com/)，重命名 `mingw32-make.exe` 为 `make.exe`，然后添加到 `环境变量` 中。推荐版本：https://github.com/brechtsanders/winlibs_mingw/releases/download/15.2.0posix-13.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2.zip
+
+
+## Pcap依赖
 
 本系统依赖第三方包：`github.com/google/gopacket`，而 `gopacket` 项目依赖底层的 C 库来实现核心的抓包功能。
 
-- Windows依赖：[Npcap](https://npcap.com/) 或 [WinPcap](https://www.winpcap.org/install/) 。只能试用动态链接库。
+- Windows依赖：[Npcap](https://npcap.com/) 或 [WinPcap](https://www.winpcap.org/install/) 。只能`使用动态链接库`。
 
-- Linux依赖：`libpcap`。包管理器可尝试安装 `libpcap-dev`。
+- Linux依赖：使用包管理器安装 `libpcap`。如 `apt install libpcap-dev` 或 `yum install libpcap-devel`。
 
 ### Windows
 
@@ -75,16 +106,16 @@ Windows缺少依赖库可能报错： `couldn't load wpcap.dll`。
 
 2. 运行安装程序时，为确保兼容性，建议勾选 `Install Npcap in WinPcap API-compatible Mode` 选项。这能确保系统同时存在 `WinPcap` 和 `Npcap` 所需的接口。
 
-在 Windows 上，使用 `github.com/google/gopacket` 的程序无法完全摆脱动态依赖库。
+在 Windows 上，使用 `github.com/google/gopacket` 的程序无法完全摆脱 `动态依赖库`。
 
 - [Npcap](https://npcap.com/)：Npcap 是对经典 WinPcap 的激动人心且功能丰富的更新 数据包捕获库。
 - [WinPcap](https://www.winpcap.org/install/)：自 2013 年以来该工具已不再维护，且不再支持 。
 
 ### Linux
 
-被第三方程序使用的依赖文件，前面的Windows系统叫动态链接库（DLL），文件后缀 为`.dll`，在Linux则称为共享对象‌（Shared Object），文件后缀为 `.so‌`
+被第三方程序使用的依赖文件，前面的Windows系统叫 `动态链接库`（DLL），文件后缀 为`.dll`，在Linux则称为 `共享对象`‌（Shared Object），文件后缀为 `.so‌`
 
-1. 安装动态链接库（共享对象）：会在系统的共享库路径下生成 `.so` 文件。
+1. 安装 `动态链接库`（共享对象）：会在系统的共享库路径下生成 `.so` 文件。
 
 ```bash
 # Debian/Ubuntu 系统
@@ -100,7 +131,7 @@ yum install libpcap-devel
 
 2. 使用静态链接独立编译
 
-在Linux系统，可使用静态链接，编译出不依赖 `libpcap.so` 动态链接库文件的独立程序。
+在Linux系统，可使用 `静态链接`，编译出不依赖 `libpcap.so` 动态链接库文件的独立程序。
 
 ```bash
 CGO_LDFLAGS="-L/path/to/static/libpcap -lpcap -static" go build your_program.go
@@ -122,11 +153,13 @@ func main() {
 }
 ```
 
-### 其他
+### 关于C库依赖
 
-一个容易被忽略的点是，就算代码没有直接使用C库，Go语言的部分标准库（如 net、os/user等）在某些情况下也会在底层使用C的实现。
-在默认设置（`CGO_ENABLED=1`）下编译这类程序，生成的可执行文件仍可能依赖系统的C库（如glibc）。这时，设置 `CGO_ENABLED=0` 会强制这些标准库使用其纯Go的实现版本，从而避免对C库的依赖，实现真正的静态链接。
-但这仅限于标准库，对于依赖C库的第三方包则无能为力。
+1. 一个容易被忽略的点是，就算代码没有直接使用C库，Go语言的部分标准库（如 net、os/user等）在某些情况下也会在底层使用C的实现。
+
+2. 在默认设置（`CGO_ENABLED=1`）下编译这类程序，生成的可执行文件仍可能依赖系统的C库（如glibc）。这时，设置 `CGO_ENABLED=0` 会强制这些标准库使用其纯Go的实现版本，从而避免对C库的依赖，实现真正的静态链接。
+
+3. 设置 `CGO_ENABLED=0` 但这仅限于标准库，对于依赖C库的第三方包则无能为力。
 
 ```bash
 # 方法一：直接静态链接指定的libpcap库
@@ -186,4 +219,4 @@ gcc -o program program.o -lpcap
 gcc -static -o program program.o -lpcap
 ```
 
-结论：对于在Linux系统编译不依赖libpcap.so的独立程序，​​推荐使用musl方案​​，它是Linux的C标准库替代品​​，用于替代glibc。可以更可靠地实现完全静态编译。Windows/macOS不使用musl​​，它们有各自的C库生态。
+结论：对于在Linux系统编译不依赖libpcap.so的独立程序，​​推荐使用musl方案​​，它是Linux的C标准库替代品​​，用于替代 `glibc` 。可以更可靠地实现完全静态编译。Windows/macOS不使用musl​​，它们有各自的C库生态。

@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"sync"
 	"time"
 
 	"github.com/iotames/easydb"
@@ -15,7 +14,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var once sync.Once
 var edb *easydb.EasyDb
 
 func dbinit() {
